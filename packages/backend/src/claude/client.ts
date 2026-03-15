@@ -1,6 +1,7 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { PM_SYSTEM_PROMPT } from './system-prompt.js';
+import { pmboxMcpServer } from './tools.js';
 
 // Since this is single-user, we use the SDK's session resume capability
 let currentSessionId: string | undefined;
@@ -17,7 +18,33 @@ export async function* streamChat(userMessage: string): AsyncGenerator<string> {
       systemPrompt: PM_SYSTEM_PROMPT,
       includePartialMessages: true,
       permissionMode: 'acceptEdits',
-      settingSources: ['project'],
+      mcpServers: {
+        'pmbox-database': pmboxMcpServer,
+      },
+      allowedTools: [
+        'mcp__pmbox-database__list_tasks',
+        'mcp__pmbox-database__create_task',
+        'mcp__pmbox-database__update_task',
+        'mcp__pmbox-database__delete_task',
+        'mcp__pmbox-database__list_stakeholders',
+        'mcp__pmbox-database__create_stakeholder',
+        'mcp__pmbox-database__update_stakeholder',
+        'mcp__pmbox-database__list_projects',
+        'mcp__pmbox-database__create_project',
+        'mcp__pmbox-database__update_project',
+        'mcp__pmbox-database__list_bugs',
+        'mcp__pmbox-database__create_bug',
+        'mcp__pmbox-database__update_bug',
+        'mcp__pmbox-database__list_roadmap_items',
+        'mcp__pmbox-database__create_roadmap_item',
+        'mcp__pmbox-database__update_roadmap_item',
+        'mcp__pmbox-database__list_documents',
+        'mcp__pmbox-database__create_document',
+        'mcp__pmbox-database__search_all',
+        'mcp__pmbox-database__get_history',
+        'mcp__pmbox-database__get_history_diff',
+        'mcp__pmbox-database__rewind_database',
+      ],
       ...(currentSessionId ? { continue: true } : {}),
     },
   });

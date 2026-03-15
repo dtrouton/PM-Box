@@ -3,12 +3,7 @@
     "memory": {
       "command": "npx",
       "args": ["-y", "@anthropic-ai/memory-mcp"],
-      "description": "Persistent knowledge graph for stakeholder info and project context"
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@anthropic-ai/filesystem-mcp", "./pm-data"],
-      "description": "Structured access to PM context files"
+      "description": "Persistent knowledge graph for stakeholder and project context"
     },
     "atlassian": {
       "type": "remote",

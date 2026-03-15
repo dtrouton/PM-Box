@@ -6,30 +6,58 @@ PM-Box is a web frontend for Claude Code that provides project management capabi
 ## Architecture
 - **Frontend**: React + Vite + Tailwind CSS (`packages/frontend/`)
 - **Backend**: Express.js + Claude Agent SDK (`packages/backend/`)
-- **PM Context**: Markdown files in `pm-data/` serve as the working knowledge base
+- **Database**: Dolt (git-versioned SQL database) — every change is committed, enabling full rewind
+- **SDK Tools**: Custom MCP tools defined via `createSdkMcpServer()` for Claude to read/write the Dolt database
 
 ## Development
 ```bash
-npm install                    # Install all workspace dependencies
-npm run dev:backend            # Start backend on port 3001
-npm run dev:frontend           # Start frontend on port 5173 (proxies /api to backend)
+# 1. Install dependencies
+npm install
+
+# 2. Start Dolt SQL server (requires dolt installed)
+./scripts/start-dolt.sh
+
+# 3. Start backend (connects to Dolt, initializes schema, seeds data)
+npm run dev:backend          # Port 3001
+
+# 4. Start frontend
+npm run dev:frontend         # Port 5173 (proxies /api to backend)
+```
+
+### Dolt Installation
+```bash
+# macOS
+brew install dolt
+
+# Linux
+sudo bash -c 'curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | bash'
 ```
 
 ## Key Files
+- `packages/backend/src/claude/tools.ts` - SDK MCP tools for database CRUD operations
 - `packages/backend/src/claude/system-prompt.ts` - PM-focused system prompt
-- `packages/backend/src/claude/client.ts` - Claude Agent SDK wrapper
+- `packages/backend/src/claude/client.ts` - Claude Agent SDK wrapper with MCP server
+- `packages/backend/src/database/` - Dolt connection, schema, history, and seeding
 - `packages/frontend/src/components/` - React UI components
-- `pm-data/` - Project context files (todos, stakeholders, docs, etc.)
-- `.claude/settings.json` - MCP server configuration
+- `packages/frontend/src/components/HistoryPanel.tsx` - Version history timeline
+- `.claude/settings.json` - MCP server configuration (external integrations)
+- `scripts/start-dolt.sh` - Dolt SQL server startup script
+
+## Database Schema
+All PM data lives in Dolt tables: `projects`, `tasks`, `stakeholders`, `bugs`, `roadmap_items`, `documents`. Every write auto-commits to Dolt's version history, enabling:
+- Full audit trail via `dolt_log`
+- Diff between any two points via `dolt_diff`
+- Rewind to any previous state via `DOLT_RESET`
 
 ## MCP Integrations
+- **pmbox-database**: In-process SDK MCP server (defined in tools.ts) — primary data access
 - **Memory**: Persistent knowledge graph for stakeholder/project context
-- **Filesystem**: Access to pm-data/ directory
 - **Atlassian**: Jira + Confluence (requires OAuth setup)
 - **Google Workspace**: Drive, Gmail, Calendar (requires OAuth setup)
 - **Slack**: Messaging (requires bot token)
 
 ## Guidelines
 - Keep responses non-technical and structured
-- Use pm-data/ files as the source of truth for project info
-- Update markdown files when users modify todos, stakeholders, etc.
+- All PM data is stored in the Dolt database (not markdown files)
+- Use the pmbox-database MCP tools for all data operations
+- Every data change creates a Dolt commit for full rewindability
