@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-gray-900;
+  }
+}
+
+@layer components {
+  .message-content p {
+    @apply mb-2 last:mb-0;
+  }
+  .message-content ul,
+  .message-content ol {
+    @apply ml-4 mb-2;
+  }
+  .message-content li {
+    @apply mb-1;
+  }
+  .message-content h1,
+  .message-content h2,
+  .message-content h3 {
+    @apply font-semibold mb-2 mt-3 first:mt-0;
+  }
+  .message-content h1 {
+    @apply text-lg;
+  }
+  .message-content h2 {
+    @apply text-base;
+  }
+  .message-content code {
+    @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+  }
+  .message-content pre {
+    @apply bg-gray-100 p-3 rounded-lg mb-2 overflow-x-auto;
+  }
+  .message-content pre code {
+    @apply bg-transparent p-0;
+  }
+}
