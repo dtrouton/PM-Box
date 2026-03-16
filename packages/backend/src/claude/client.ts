@@ -1,5 +1,4 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
-import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { PM_SYSTEM_PROMPT } from './system-prompt.js';
 import { pmboxMcpServer } from './tools.js';
 
@@ -9,8 +8,6 @@ let sessionStartedAt: number = Date.now();
 let messageCount = 0;
 
 export async function* streamChat(userMessage: string): AsyncGenerator<string> {
-  messageCount++;
-
   const result = query({
     prompt: userMessage,
     options: {
@@ -45,7 +42,7 @@ export async function* streamChat(userMessage: string): AsyncGenerator<string> {
         'mcp__pmbox-database__get_history_diff',
         'mcp__pmbox-database__rewind_database',
       ],
-      ...(currentSessionId ? { continue: true } : {}),
+      ...(currentSessionId ? { resume: currentSessionId } : {}),
     },
   });
 

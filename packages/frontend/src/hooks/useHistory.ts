@@ -33,7 +33,7 @@ export function useHistory() {
       const res = await fetch('/api/history/rewind', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commitHash }),
+        body: JSON.stringify({ commitHash, confirm: true }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       await fetchHistory();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCommitLog, getCommitDiffSummary, getTableDiff, rewindTo } from '../database/history.js';
+import { getCommitLog, getCommitByHash, getCommitAncestor, getCommitDiffSummary, getTableDiff, rewindTo } from '../database/history.js';
 
 const router = Router();
 
@@ -19,35 +19,34 @@ router.get('/history', async (_req, res) => {
 router.get('/history/:hash/diff', async (req, res) => {
   try {
     const { hash } = req.params;
-    // Get the commit and its parent
-    const commits = await getCommitLog(100);
-    const idx = commits.findIndex(c => c.commit_hash === hash);
-    if (idx === -1) {
+
+    const commit = await getCommitByHash(hash);
+    if (!commit) {
       res.status(404).json({ error: 'Commit not found' });
       return;
     }
 
-    const parentHash = idx + 1 < commits.length ? commits[idx + 1].commit_hash : null;
-    if (!parentHash) {
-      res.json({ commit: commits[idx], diff: [], message: 'Initial commit — no parent to diff against' });
+    const parent = await getCommitAncestor(hash);
+    if (!parent) {
+      res.json({ commit, diff: [], message: 'Initial commit — no parent to diff against' });
       return;
     }
 
-    const summary = await getCommitDiffSummary(parentHash, hash);
+    const summary = await getCommitDiffSummary(parent.commit_hash, hash);
 
     // Get detailed diffs for each changed table
     const details: Record<string, unknown[]> = {};
     for (const entry of summary) {
       const tableName = entry.table_name;
       try {
-        const tableDiff = await getTableDiff(tableName, parentHash, hash);
+        const tableDiff = await getTableDiff(tableName, parent.commit_hash, hash);
         details[tableName] = tableDiff;
       } catch {
         details[tableName] = [];
       }
     }
 
-    res.json({ commit: commits[idx], summary, details });
+    res.json({ commit, summary, details });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ error: msg });
@@ -57,9 +56,13 @@ router.get('/history/:hash/diff', async (req, res) => {
 // POST /api/history/rewind — rewind database to a specific commit
 router.post('/history/rewind', async (req, res) => {
   try {
-    const { commitHash } = req.body;
+    const { commitHash, confirm } = req.body;
     if (!commitHash || typeof commitHash !== 'string') {
       res.status(400).json({ error: 'commitHash is required' });
+      return;
+    }
+    if (confirm !== true) {
+      res.status(400).json({ error: 'confirm must be true to rewind the database' });
       return;
     }
 

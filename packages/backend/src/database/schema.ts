@@ -24,7 +24,8 @@ const TABLES: string[] = [
     slack_handle VARCHAR(100),
     communication_preference VARCHAR(100),
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   )`,
 
   `CREATE TABLE IF NOT EXISTS tasks (
@@ -67,6 +68,7 @@ const TABLES: string[] = [
     project_id VARCHAR(36),
     dependencies TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
   )`,
 
@@ -78,6 +80,7 @@ const TABLES: string[] = [
     description TEXT,
     project_id VARCHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
   )`,
 ];
